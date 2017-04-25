@@ -1,2 +1,35 @@
 # simdprune
 Pruning elements in SIMD vectors
+
+Suppose that you are given an vector like 0,1,1,0,3,1,1,4 and you want to remove
+all 1s to get 0,0,3,4,... One way to do this is to compare the original vector
+with the zero vector  0,0,0,0,0,0,0,0 to get the mask 0b01100110. We then want to
+pass the mask 0b01100110 and the vector 0,1,1,0,3,1,1,4 to some function that
+will produce a vector that begins with 0,0,3,4.
+
+
+The AVX-512 instruction sets offer ``vcompress`` instructions for this purpose, but other
+instructions sets like SSSE3 or AVX2 provide no help.
+
+That's where this library comes in.
+
+
+## Usage
+
+To prune every other value:
+
+```
+  // 128-bit vectors (SSSE3)
+  prune_epi8(x,0b1010101010101010);
+  prune_epi16(x,0b10101010);
+  prune_epi32(x,0b1010);
+  // 256-bit vectors (AVX2)
+  prune256_epi32(x,0b10101010);
+```
+Replacing the various masks by, say, ``0b1`` would prune just the first value.
+
+
+## How to install
+
+Just copy the header files and include them.  Look at ``demo.c`` for an example.
+
