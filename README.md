@@ -13,6 +13,10 @@ instructions sets like SSSE3 or AVX2 provide no help.
 
 That's where this library comes in.
 
+## Practical examples
+
+- [Removing duplicates from lists quickly](http://lemire.me/blog/2017/04/10/removing-duplicates-from-lists-quickly/)
+- [How quickly can you remove spaces from a string?](http://lemire.me/blog/2017/01/20/how-quickly-can-you-remove-spaces-from-a-string/)
 
 ## Usage
 
