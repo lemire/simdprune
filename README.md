@@ -13,6 +13,9 @@ instructions sets like SSSE3 or AVX2 provide no help.
 
 That's where this library comes in.
 
+Further documentation: [Quickly pruning elements in SIMD vectors using the simdprune library](http://lemire.me/blog/2017/04/25/quickly-pruning-elements-in-simd-vectors-using-the-simdprune-library/)
+
+
 ## Practical examples
 
 - [Removing duplicates from lists quickly](http://lemire.me/blog/2017/04/10/removing-duplicates-from-lists-quickly/)
