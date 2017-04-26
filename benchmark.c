@@ -1,5 +1,4 @@
-// clang -o benchmark benchmark.c -mavx2
-
+// gcc -o benchmark benchmark.c -mavx2 -O3 && ./benchmark
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -130,69 +129,66 @@ uint64_t global_rdtsc_overhead = (uint64_t) UINT64_MAX;
  } while (0)
 
 
+__attribute__ ((noinline))
 void randomize(int * bitmasks, int N, int mask) {
   for (int k = 0; k < N; k++) {
     bitmasks[k] = rand() & mask;
   }
 }
 
-__m128i runprune_epi8(int * bitmasks, int N) {
-  __m128i x = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
+__attribute__ ((noinline))
+__m128i runprune_epi8(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
-    x = prune_epi8(x, bitmasks[k]);
+    *x = prune_epi8(*x, bitmasks[k]);
   }
-  return x;
+  return *x;
 }
 
-
-__m128i runprune_epi16(int * bitmasks, int N) {
-  __m128i x = _mm_set_epi16(7,6,5,4,3,2,1,0);
+__attribute__ ((noinline))
+__m128i runprune_epi16(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
-    x = prune_epi16(x, bitmasks[k]);
+    *x = prune_epi16(*x, bitmasks[k]);
   }
-  return x;
+  return *x;
 }
 
-
-
-__m128i runprune_epi32(int * bitmasks, int N) {
-  __m128i x = _mm_set_epi32(3,2,1,0);
+__attribute__ ((noinline))
+__m128i runprune_epi32(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
-    x = prune_epi32(x, bitmasks[k]);
+    *x = prune_epi32(*x, bitmasks[k]);
   }
-  return x;
+  return *x;
 }
 
-
-
-__m256i runprune256_epi32(int * bitmasks, int N) {
-  __m256i x = _mm256_set_epi32(7,6,5,4,3,2,1,0);
+__attribute__ ((noinline))
+__m256i runprune256_epi32(int * bitmasks, int N, __m256i *x) {
   for (int k = 0; k < N; k++) {
-    x = prune256_epi32(x, bitmasks[k]);
+    *x = prune256_epi32(*x, bitmasks[k]);
   }
-  return x;
+  return *x;
 }
 
-__m256i runcompress256(int * bitmasks, int N) {
-  __m256i x = _mm256_set_epi32(7,6,5,4,3,2,1,0);
+__m256i runcompress256(int * bitmasks, int N,  __m256i *x) {
   for (int k = 0; k < N; k++) {
-    x = compress256(x, bitmasks[k]);
+    *x = compress256(*x, bitmasks[k]);
   }
-  return x;
+  return *x;
 }
 
 
 
 int main() {
+  printf("This test measures the latency in CPU cycles.\n");
   const int N = 2048;
   int * bitmasks = malloc(sizeof(int) * N);
-  const int repeat = 50;
-  BEST_TIME_NOCHECK(runprune_epi8(bitmasks, N), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
-  BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
-  BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
-  BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
-  BEST_TIME_NOCHECK(runcompress256(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
-
-
+  const int repeat = 500;
+  __m128i x = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
+  BEST_TIME_NOCHECK(runprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N, &x), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N, &x), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
+  __m256i xx = _mm256_set_epi32(7,6,5,4,3,2,1,0);
+  BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runcompress256(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   free(bitmasks);
+  return _mm_extract_epi8(x,0) + _mm256_extract_epi8(xx,0);
 }
