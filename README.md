@@ -37,7 +37,7 @@ Replacing the various masks by, say, ``0b1`` would prune just the first value.
 
 ## How fast is it?
 
-The throughput of these functions is likely quite good. The latency however uses several cycles, however. Especially expensive is
+The throughput of these functions is likely quite good. The latency spans several cycles, however. Especially expensive is
 ``prune_epi8`` due to its large table.
 
 ```
