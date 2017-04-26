@@ -3,9 +3,9 @@ Pruning elements in SIMD vectors
 
 Suppose that you are given an vector like 0,1,1,0,3,1,1,4 and you want to remove
 all 1s to get 0,0,3,4,... One way to do this is to compare the original vector
-with the zero vector  0,0,0,0,0,0,0,0 to get the mask 0b01100110. We then want to
+with the  vector  1,1,1,1,1,1,1,1 to get the mask 0b01100110 (where a 1 appears if and only if the corresponding elements are equal). We then want to
 pass the mask 0b01100110 and the vector 0,1,1,0,3,1,1,4 to some function that
-will produce a vector that begins with 0,0,3,4.
+will produce a vector that begins with 0,0,3,4, skipping the 1s.
 
 
 The AVX-512 instruction sets offer ``vcompress`` instructions for this purpose, but other
