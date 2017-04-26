@@ -35,6 +35,20 @@ To prune every other value:
 ```
 Replacing the various masks by, say, ``0b1`` would prune just the first value.
 
+## How fast is it?
+
+The throughput of these functions is likely quite good. The latency however uses several cycles, however. Especially expensive is
+``prune_epi8`` due to its large table.
+
+```
+$ gcc -o benchmark benchmark.c -mavx2 -O3 && ./benchmark
+This test measures the latency in CPU cycles.
+rdtsc_overhead set to 30
+runprune_epi8(bitmasks, N, &x)                              	:  4.163 cycles per operation (best) 	4.629 cycles per operation (avg)
+runprune_epi16(bitmasks, N, &x)                             	:  2.404 cycles per operation (best) 	2.462 cycles per operation (avg)
+runprune_epi32(bitmasks, N, &x)                             	:  2.369 cycles per operation (best) 	2.444 cycles per operation (avg)
+runprune256_epi32(bitmasks, N, &xx)                         	:  3.135 cycles per operation (best) 	3.155 cycles per operation (avg)
+```
 
 ## How to install
 
