@@ -1,4 +1,4 @@
-// gcc -o benchmark benchmark.c -mavx2 -O3 && ./benchmark
+// gcc -o benchmark benchmark.c  -mbmi2 -mavx2 -O3 && ./benchmark
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
