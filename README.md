@@ -40,6 +40,9 @@ Replacing the various masks by, say, ``0b1`` would prune just the first value.
 The throughput of these functions is likely quite good. The latency spans several cycles, however. Especially expensive is
 ``prune_epi8`` due to its large table.
 
+These numbers assume that one is able to hide the cache/RAM latency by prefetching the bit masks. Table lookups from RAM
+take dozens of cycles at least.
+
 ```
 $ gcc -o benchmark benchmark.c -mavx2 -O3 && ./benchmark
 This test measures the latency in CPU cycles.
