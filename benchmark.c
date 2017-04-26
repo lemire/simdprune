@@ -173,6 +173,15 @@ __m256i runprune256_epi32(int * bitmasks, int N) {
   return x;
 }
 
+__m256i runcompress256(int * bitmasks, int N) {
+  __m256i x = _mm256_set_epi32(7,6,5,4,3,2,1,0);
+  for (int k = 0; k < N; k++) {
+    x = compress256(x, bitmasks[k]);
+  }
+  return x;
+}
+
+
 
 int main() {
   const int N = 2048;
@@ -182,6 +191,8 @@ int main() {
   BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runcompress256(bitmasks, N), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
+
 
   free(bitmasks);
 }
