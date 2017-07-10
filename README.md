@@ -9,7 +9,7 @@ will produce a vector that begins with 0,0,3,4, skipping the 1s.
 
 
 The AVX-512 instruction sets offer ``vcompress`` instructions for this purpose, but other
-instructions sets like SSSE3 or AVX2 provide no help.
+instructions sets like SSSE3 or AVX2 provide no help. Moreover, AVX-512 compression seems limited to 32-bit and 64-bit words. ARM Scalable Vector Extensions also support a related instruction (``compact``) but it also seems to be limited to 32-bit and 64-bit words. 
 
 That's where this library comes in.
 
