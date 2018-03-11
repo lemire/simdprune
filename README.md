@@ -9,12 +9,19 @@ will produce a vector that begins with 0,0,3,4, skipping the 1s.
 
 
 The AVX-512 instruction sets offer ``vcompress`` instructions for this purpose, but other
-instructions sets like SSSE3 or AVX2 provide no help.
+instructions sets like SSSE3 or AVX2 provide no help. 
 
 That's where this library comes in.
 
 Further documentation: [Quickly pruning elements in SIMD vectors using the simdprune library](http://lemire.me/blog/2017/04/25/quickly-pruning-elements-in-simd-vectors-using-the-simdprune-library/)
 
+## On processors benefiting from advanced AVX-512 instructions
+
+The AVX-512 instruction set ``vcompress`` helps but is limited to 32-bit and 64-bit words. 
+
+## On ARM processors
+
+Some ARM processors will benefit from Scalable Vector Extensions. It seems that a sequence of SPLICE and INCP instructions can effectively achieve arbitrary prunning. ARM Scalable Vector Extensions also support a related instruction (``compact``) but it also seems to be limited to 32-bit and 64-bit words. 
 
 ## Practical examples
 
