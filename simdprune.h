@@ -60,7 +60,6 @@ __m256i compress256(__m256i src, unsigned int mask ) {
   uint64_t wanted_indices = _pext_u64(identity_indices, expanded_mask);
   __m128i bytevec = _mm_cvtsi64_si128(wanted_indices);
   __m256i shufmask = _mm256_cvtepu8_epi32(bytevec);
-  //return _mm256_permutevar8x32_ps(src, shufmask);
   return _mm256_permutevar8x32_epi32(src,shufmask);
 }
 

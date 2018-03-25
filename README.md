@@ -51,7 +51,7 @@ These numbers assume that one is able to hide the cache/RAM latency by prefetchi
 take dozens of cycles at least.
 
 ```
-$ gcc -o benchmark benchmark.c -mavx2 -O3 && ./benchmark
+$ gcc -o benchmark benchmark.c -mavx2 -mbmi -O3 && ./benchmark
 This test measures the latency in CPU cycles.
 rdtsc_overhead set to 30
 runprune_epi8(bitmasks, N, &x)                              	:  4.163 cycles per operation (best) 	4.629 cycles per operation (avg)
