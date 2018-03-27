@@ -168,9 +168,9 @@ __m256i runprune256_epi32(int * bitmasks, int N, __m256i *x) {
   return *x;
 }
 
-__m256i runcompress256(int * bitmasks, int N,  __m256i *x) {
+__m256i runpext_prune256_epi32(int * bitmasks, int N,  __m256i *x) {
   for (int k = 0; k < N; k++) {
-    *x = compress256(*x, bitmasks[k]);
+    *x = pext_prune256_epi32(*x, bitmasks[k]);
   }
   return *x;
 }
@@ -188,7 +188,7 @@ int main() {
   BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N, &x), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
   __m256i xx = _mm256_set_epi32(7,6,5,4,3,2,1,0);
   BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
-  BEST_TIME_NOCHECK(runcompress256(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runpext_prune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   free(bitmasks);
   return _mm_extract_epi8(x,0) + _mm256_extract_epi8(xx,0);
 }

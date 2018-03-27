@@ -53,7 +53,7 @@ __m256i prune256_epi32( __m256i x, int mask) {
 // Uses 64bit pdep / pext to save a step in unpacking.
 // source: http://stackoverflow.com/questions/36932240/avx2-what-is-the-most-efficient-way-to-pack-left-based-on-a-mask
 // ***Note that _pdep_u64 is very slow on AMD Ryzen.***
-__m256i compress256(__m256i src, unsigned int mask ) {
+__m256i pext_prune256_epi32(__m256i src, unsigned int mask ) {
   uint64_t expanded_mask = _pdep_u64(mask, 0x0101010101010101);  // unpack each bit to a byte
   expanded_mask *= 0xFF;
   const uint64_t identity_indices = 0x0706050403020100;
