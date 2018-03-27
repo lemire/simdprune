@@ -27,6 +27,30 @@ __m128i prune_epi8( __m128i x, int mask) {
           x, _mm_loadu_si128((const __m128i *)mask128_epi8 + mask));
 }
 
+static inline __m128i left_shift_bytes(__m128i x, int count) {
+  // we'd like to shift by count bytes, but it can't be done directly without immediates
+  __m128i p1 = _mm_sll_epi64(x, _mm_cvtsi64_si128(count * 8));
+  __m128i p2 = _mm_srl_epi64(_mm_unpacklo_epi64(_mm_setzero_si128(),x), _mm_cvtsi64_si128(64 - count * 8));
+  return _mm_or_si128(p1, p2);
+}
+
+
+// prune bytes, mask should be in [0,1<<16)
+// values corresponding to a 1-bit in the mask are removed from output
+// like thinprune_epi8 but uses a 2kB table.
+__m128i thinprune_epi8( __m128i x, int mask) {
+      int mask1 = mask & 0xFF;
+      int pop = 8 - __builtin_popcount(mask1);
+      int mask2 = mask >> 8;
+      __m128i m1 = _mm_loadl_epi64((const __m128i *)(thintable_epi8 + mask1));
+      __m128i m2 = _mm_loadl_epi64((const __m128i *)(thintable_epi8 + mask2));
+      __m128i m2add = _mm_add_epi8(m2,_mm_set1_epi8(8));
+      __m128i m2shifted = left_shift_bytes(m2add,pop);
+      __m128i shufmask = _mm_or_si128(m2shifted,m1);
+      return _mm_shuffle_epi8(
+          x, shufmask);
+}
+
 // prune 16-bit values, mask should be in [0,1<<8)
 // values corresponding to a 1-bit in the mask are removed from output
 __m128i prune_epi16( __m128i x, int mask) {

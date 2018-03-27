@@ -145,6 +145,13 @@ __m128i runprune_epi8(int * bitmasks, int N, __m128i *x) {
 }
 
 __attribute__ ((noinline))
+__m128i runthinprune_epi8(int * bitmasks, int N, __m128i *x) {
+  for (int k = 0; k < N; k++) {
+    *x = thinprune_epi8(*x, bitmasks[k]);
+  }
+  return *x;
+}
+__attribute__ ((noinline))
 __m128i runprune_epi16(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
     *x = prune_epi16(*x, bitmasks[k]);
@@ -184,6 +191,7 @@ int main() {
   const int repeat = 500;
   __m128i x = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
   BEST_TIME_NOCHECK(runprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runthinprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N, &x), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N, &x), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
   __m256i xx = _mm256_set_epi32(7,6,5,4,3,2,1,0);
