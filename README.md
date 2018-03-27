@@ -51,14 +51,19 @@ These numbers assume that one is able to hide the cache/RAM latency by prefetchi
 take dozens of cycles at least.
 
 ```
-$ gcc -o benchmark benchmark.c -mavx2 -mbmi -O3 && ./benchmark
+  gcc -o benchmark benchmark.c  -mbmi2 -mavx2 -O3 && ./benchmark
 This test measures the latency in CPU cycles.
 rdtsc_overhead set to 30
-runprune_epi8(bitmasks, N, &x)                              	:  4.163 cycles per operation (best) 	4.629 cycles per operation (avg)
-runprune_epi16(bitmasks, N, &x)                             	:  2.404 cycles per operation (best) 	2.462 cycles per operation (avg)
-runprune_epi32(bitmasks, N, &x)                             	:  2.369 cycles per operation (best) 	2.444 cycles per operation (avg)
-runprune256_epi32(bitmasks, N, &xx)                         	:  3.135 cycles per operation (best) 	3.155 cycles per operation (avg)
+runprune_epi8(bitmasks, N, &x)                                  :  4.173 cycles per operation (best)     4.581 cycles per operation (avg)
+runthinprune_epi8(bitmasks, N, &x)                              :  10.129 cycles per operation (best)     10.166 cycles per operation (avg)
+runprune_epi16(bitmasks, N, &x)                                 :  2.440 cycles per operation (best)     2.451 cycles per operation (avg)
+runprune_epi32(bitmasks, N, &x)                                 :  2.368 cycles per operation (best)     2.446 cycles per operation (avg)
+runprune256_epi32(bitmasks, N, &xx)                             :  3.125 cycles per operation (best)     3.145 cycles per operation (avg)
+runpext_prune256_epi32(bitmasks, N, &xx)                        :  4.123 cycles per operation (best)     4.134 cycles per operation (avg)
 ```
+
+Why is ``runthinprune_epi8`` so much slower than ``runprune_epi8``? In part because it uses a tiny lookup table and trades reduce memory
+usage for much lower speed.
 
 ## How to install
 
