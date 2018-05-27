@@ -198,5 +198,6 @@ int main() {
   BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runpext_prune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   free(bitmasks);
-  return _mm_extract_epi8(x,0) + _mm256_extract_epi8(xx,0);
+  printf("%d \n", _mm_extract_epi8(x,0) + _mm256_extract_epi8(xx,0));
+  return EXIT_SUCCESS;
 }
