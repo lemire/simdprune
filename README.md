@@ -53,13 +53,14 @@ take dozens of cycles at least.
 ```
   gcc -o benchmark benchmark.c  -mbmi2 -mavx2 -O3 && ./benchmark
 This test measures the latency in CPU cycles.
-rdtsc_overhead set to 30
-runprune_epi8(bitmasks, N, &x)                                  :  4.173 cycles per operation (best)     4.581 cycles per operation (avg)
-runthinprune_epi8(bitmasks, N, &x)                              :  10.129 cycles per operation (best)     10.166 cycles per operation (avg)
-runprune_epi16(bitmasks, N, &x)                                 :  2.440 cycles per operation (best)     2.451 cycles per operation (avg)
-runprune_epi32(bitmasks, N, &x)                                 :  2.368 cycles per operation (best)     2.446 cycles per operation (avg)
-runprune256_epi32(bitmasks, N, &xx)                             :  3.125 cycles per operation (best)     3.145 cycles per operation (avg)
-runpext_prune256_epi32(bitmasks, N, &xx)                        :  4.123 cycles per operation (best)     4.134 cycles per operation (avg)
+rdtsc_overhead set to 26
+runprune_epi8(bitmasks, N, &x)                              	:  3.788 cycles per operation (best) 	4.049 cycles per operation (avg)
+runthinprune_epi8(bitmasks, N, &x)                          	:  6.678 cycles per operation (best) 	6.719 cycles per operation (avg)
+runskinnyprune_epi8(bitmasks, N, &x)                        	:  3.789 cycles per operation (best) 	3.799 cycles per operation (avg)
+runprune_epi16(bitmasks, N, &x)                             	:  1.963 cycles per operation (best) 	1.986 cycles per operation (avg)
+runprune_epi32(bitmasks, N, &x)                             	:  1.950 cycles per operation (best) 	1.957 cycles per operation (avg)
+runprune256_epi32(bitmasks, N, &xx)                         	:  2.888 cycles per operation (best) 	2.911 cycles per operation (avg)
+runpext_prune256_epi32(bitmasks, N, &xx)                    	:  2.875 cycles per operation (best) 	2.884 cycles per operation (avg)
 ```
 
 Why is ``runthinprune_epi8`` so much slower than ``runprune_epi8``? In part because it uses a tiny lookup table and trades reduce memory
