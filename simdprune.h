@@ -28,10 +28,12 @@
 // trick: by leaving the highest bit (1<<15) to zero whether
 // you want to delete the last value or not, you can end up using
 // only the first half of the table (which limits cache usage).
-__m128i prune_epi8(__m128i x, int mask) {
+static inline __m128i prune_epi8(__m128i x, int mask) {
   return _mm_shuffle_epi8(
       x, _mm_loadu_si128((const __m128i *)mask128_epi8 + mask));
 }
+
+
 
 static inline __m128i left_shift_bytes(__m128i x, int count) {
   // we'd like to shift by count bytes, but it can't be done directly without immediates
@@ -43,8 +45,8 @@ static inline __m128i left_shift_bytes(__m128i x, int count) {
 
 // prune bytes, mask should be in [0,1<<16)
 // values corresponding to a 1-bit in the mask are removed from output
-// like thinprune_epi8 but uses a 2kB table.
-__m128i thinprune_epi8( __m128i x, int mask) {
+// like prune_epi8 but uses a 2kB table.
+static inline __m128i thinprune_epi8( __m128i x, int mask) {
       int mask1 = mask & 0xFF;
       int pop = 8 - __builtin_popcount(mask1);
       int mask2 = mask >> 8;
@@ -57,6 +59,27 @@ __m128i thinprune_epi8( __m128i x, int mask) {
           x, shufmask);
 }
 
+
+// prune bytes, mask should be in [0,1<<16)
+// values corresponding to a 1-bit in the mask are removed from output
+// like prune_epi8 but uses less than 1kB of lookup tables.
+// credit: @animetosho
+static inline __m128i skinnyprune_epi8( __m128i x, int mask) {
+      int mask1 = mask & 0xFF;
+      int mask2 = (mask >> 8) & 0xFF;
+      __m128i shufmask = _mm_castps_si128(_mm_loadh_pi(
+        _mm_castsi128_ps(
+          _mm_loadl_epi64((const __m128i *)(thintable_epi8 + mask1))
+        ),
+        (const __m64 *)(thintable_epi8 + mask2)
+      ));
+      shufmask = _mm_add_epi8(shufmask, _mm_set_epi32(0x08080808, 0x08080808, 0, 0));
+      __m128i pruned = _mm_shuffle_epi8(x, shufmask);
+      intptr_t popx2 = BitsSetTable256mul2[mask1];
+      __m128i compactmask = _mm_loadu_si128((const __m128i*)(pshufb_combine_table + popx2*8));
+      return _mm_shuffle_epi8(pruned, compactmask);
+}
+
 // prune 16-bit values, mask should be in [0,1<<8)
 // values corresponding to a 1-bit in the mask are removed from output
 //
@@ -66,14 +89,14 @@ __m128i thinprune_epi8( __m128i x, int mask) {
 // trick: by leaving the highest bit (1<<7) to zero whether
 // you want to delete the last value or not, you can end up using
 // only the first half of the table (which limits cache usage).
-__m128i prune_epi16(__m128i x, int mask) {
+static inline __m128i prune_epi16(__m128i x, int mask) {
   return _mm_shuffle_epi8(
       x, _mm_loadu_si128((const __m128i *)mask128_epi16 + mask));
 }
 
 // prune 32-bit values, mask should be in [0,1<<4)
 // values corresponding to a 1-bit in the mask are removed from output
-__m128i prune_epi32(__m128i x, int mask) {
+static inline __m128i prune_epi32(__m128i x, int mask) {
   return _mm_shuffle_epi8(
       x, _mm_loadu_si128((const __m128i *)mask128_epi32 + mask));
 }
@@ -83,7 +106,7 @@ __m128i prune_epi32(__m128i x, int mask) {
 #ifdef __AVX2__
 // prune 32-bit values, mask should be in [0,1<<8)
 // values corresponding to a 1-bit in the mask are removed from output
-__m256i prune256_epi32(__m256i x, int mask) {
+static inline __m256i prune256_epi32(__m256i x, int mask) {
   return _mm256_permutevar8x32_epi32(
       x, _mm256_loadu_si256((const __m256i *)mask256_epi32 + mask));
 }
@@ -92,7 +115,7 @@ __m256i prune256_epi32(__m256i x, int mask) {
 // source:
 // http://stackoverflow.com/questions/36932240/avx2-what-is-the-most-efficient-way-to-pack-left-based-on-a-mask
 // ***Note that _pdep_u64 is very slow on AMD Ryzen.***
-__m256 pext_prune256_epi32(__m256 src, unsigned int mask) {
+static inline __m256 pext_prune256_epi32(__m256 src, unsigned int mask) {
   uint64_t expanded_mask =
       _pdep_u64(mask, 0x0101010101010101); // unpack each bit to a byte
   expanded_mask *= 0xFF;

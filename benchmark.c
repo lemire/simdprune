@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
+
 
 #include "simdprune.h"
 
@@ -151,6 +153,17 @@ __m128i runthinprune_epi8(int * bitmasks, int N, __m128i *x) {
   }
   return *x;
 }
+
+__attribute__ ((noinline))
+__m128i runskinnyprune_epi8(int * bitmasks, int N, __m128i *x) {
+  for (int k = 0; k < N; k++) {
+    *x = skinnyprune_epi8(*x, bitmasks[k]);
+  }
+  return *x;
+}
+
+
+
 __attribute__ ((noinline))
 __m128i runprune_epi16(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
@@ -175,6 +188,9 @@ __m256i runprune256_epi32(int * bitmasks, int N, __m256i *x) {
   return *x;
 }
 
+
+
+
 __m256i runpext_prune256_epi32(int * bitmasks, int N,  __m256i *x) {
   for (int k = 0; k < N; k++) {
     *x = pext_prune256_epi32(*x, bitmasks[k]);
@@ -182,9 +198,44 @@ __m256i runpext_prune256_epi32(int * bitmasks, int N,  __m256i *x) {
   return *x;
 }
 
+void print_epi8(__m128i x) {
+  uint8_t buffer[16];
+  _mm_storeu_si128((__m128i*)buffer,x);
+  for(size_t i = 0; i < 16; i++) {
+    printf("%u ", buffer[i]);
+  }
+  printf("\n");
+}
 
+void check_prune_epi8(__m128i input, __m128i output, int mask) {
+  uint8_t buffer[16];
+  _mm_storeu_si128((__m128i*)buffer,input);
+  size_t pos = 0;
+  uint8_t outbuffer[16];
+  _mm_storeu_si128((__m128i*)outbuffer,output);
+
+  for(size_t i = 0; i < 16; i++) {
+    if((mask & (1<<i)) == 0) {
+      assert(buffer[i] == outbuffer[pos]);
+      pos ++;
+    }
+  }
+}
+
+void testepi8() {
+  for(int mask = 0; mask < (1<<16); mask++) {
+    __m128i source = _mm_set_epi8(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15);
+    __m128i m1 = prune_epi8(source, mask);
+    check_prune_epi8(source, m1, mask);
+    __m128i m2 = thinprune_epi8(source, mask);
+    check_prune_epi8(source, m2, mask);
+    __m128i m3 = skinnyprune_epi8(source, mask);
+    check_prune_epi8(source, m3, mask);
+  }
+}
 
 int main() {
+  testepi8();
   printf("This test measures the latency in CPU cycles.\n");
   const int N = 2048;
   int * bitmasks = malloc(sizeof(int) * N);
@@ -192,6 +243,7 @@ int main() {
   __m128i x = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
   BEST_TIME_NOCHECK(runprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runthinprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
+  BEST_TIME_NOCHECK(runskinnyprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N, &x), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N, &x), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
   __m256i xx = _mm256_set_epi32(7,6,5,4,3,2,1,0);
