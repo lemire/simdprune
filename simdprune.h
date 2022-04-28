@@ -79,6 +79,12 @@ static inline __m128i skinnyprune_epi8( __m128i x, int mask) {
       __m128i compactmask = _mm_loadu_si128((const __m128i*)(pshufb_combine_table + popx2*8));
       return _mm_shuffle_epi8(pruned, compactmask);
 }
+#ifdef __AVX512VBMI2__ 
+// prune bytes, values corresponding to a 1-bit in the mask are KEPT in the output
+static inline __m128i bmiprune_epi8( __m128i x, __mmask16 k) {
+      return _mm_maskz_compress_epi8(k, x);
+}
+#endif // __AVX512VBMI2__
 
 // prune 16-bit values, mask should be in [0,1<<8)
 // values corresponding to a 1-bit in the mask are removed from output
