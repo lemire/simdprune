@@ -8,6 +8,9 @@
 
 #include "simdprune.h"
 
+#ifndef __SSE3__
+  #error "minimal feature level (SSE3) not met. try compiling with -march=native"
+#endif
 
 #define RDTSC_START(cycles)                                             \
     do {                                                                \
@@ -162,6 +165,8 @@ __m128i runskinnyprune_epi8(int * bitmasks, int N, __m128i *x) {
   return *x;
 }
 
+
+#ifdef __AVX512VBMI2__ 
 __attribute__ ((noinline))
 __m128i runbmiprune_epi8(int * bitmasks, int N, __m128i *x) {
   for (int k = 0; k < N; k++) {
@@ -169,7 +174,7 @@ __m128i runbmiprune_epi8(int * bitmasks, int N, __m128i *x) {
   }
   return *x;
 }
-
+#endif //
 
 
 __attribute__ ((noinline))
@@ -188,6 +193,7 @@ __m128i runprune_epi32(int * bitmasks, int N, __m128i *x) {
   return *x;
 }
 
+#ifdef __AVX2__
 __attribute__ ((noinline))
 __m256i runprune256_epi32(int * bitmasks, int N, __m256i *x) {
   for (int k = 0; k < N; k++) {
@@ -196,15 +202,14 @@ __m256i runprune256_epi32(int * bitmasks, int N, __m256i *x) {
   return *x;
 }
 
-
-
-
 __m256i runpext_prune256_epi32(int * bitmasks, int N,  __m256i *x) {
   for (int k = 0; k < N; k++) {
     *x = pext_prune256_epi32(*x, bitmasks[k]);
   }
   return *x;
 }
+#endif // __AVX2__
+
 
 void print_epi8(__m128i x) {
   uint8_t buffer[16];
@@ -251,16 +256,18 @@ int main() {
   __m128i x = _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
   BEST_TIME_NOCHECK(runprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runthinprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
-#ifdef __AVX512VBMI2__ 
   BEST_TIME_NOCHECK(runskinnyprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
-#endif // __AVX512VBMI2__
+#ifdef __AVX512VBMI2__ 
   BEST_TIME_NOCHECK(runbmiprune_epi8(bitmasks, N, &x), randomize(bitmasks, N, (1<<16)-1), repeat, N, true);
+#endif // __AVX512VBMI2__
   BEST_TIME_NOCHECK(runprune_epi16(bitmasks, N, &x), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runprune_epi32(bitmasks, N, &x), randomize(bitmasks, N, (1<<4)-1), repeat, N, true);
+#ifdef __AVX2__
   __m256i xx = _mm256_set_epi32(7,6,5,4,3,2,1,0);
   BEST_TIME_NOCHECK(runprune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
   BEST_TIME_NOCHECK(runpext_prune256_epi32(bitmasks, N, &xx), randomize(bitmasks, N, (1<<8)-1), repeat, N, true);
-  free(bitmasks);
   printf("%d \n", _mm_extract_epi8(x,0) + _mm256_extract_epi8(xx,0));
+#endif // __AVX2__
+  free(bitmasks);
   return EXIT_SUCCESS;
 }
