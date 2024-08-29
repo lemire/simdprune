@@ -59,7 +59,7 @@ static inline __m128i thinprune_epi8( __m128i x, int mask) {
           x, shufmask);
 }
 
-
+#ifdef __AVX512VBMI2__
 // prune bytes, mask should be in [0,1<<16)
 // values corresponding to a 1-bit in the mask are removed from output
 // like prune_epi8 but uses less than 1kB of lookup tables.
@@ -79,7 +79,6 @@ static inline __m128i skinnyprune_epi8( __m128i x, int mask) {
       __m128i compactmask = _mm_loadu_si128((const __m128i*)(pshufb_combine_table + popx2*8));
       return _mm_shuffle_epi8(pruned, compactmask);
 }
-#ifdef __AVX512VBMI2__ 
 // prune bytes, values corresponding to a 1-bit in the mask are KEPT in the output
 static inline __m128i bmiprune_epi8( __m128i x, __mmask16 k) {
       return _mm_maskz_compress_epi8(k, x);
@@ -130,6 +129,22 @@ static inline __m256i pext_prune256_epi32(__m256i src, unsigned int mask) {
   __m128i bytevec = _mm_cvtsi64_si128(wanted_indices);
   __m256i shufmask = _mm256_cvtepu8_epi32(bytevec);
   return _mm256_permutevar8x32_epi32(src,shufmask);
+}
+
+__m128i pext_prune128_epi8(__m128i src, uint64_t mask) {
+  // duplicate each bit into a nibble of the same value
+  uint64_t expanded_mask = _pdep_u64(mask, 0x1111111111111111) * 0xF;
+
+  // Simulate a 16-wide compaction via `pext`, producing up to 16 nibbles
+  uint64_t wanted_indices = _pext_u64(0xFEDCBA9876543210, expanded_mask);
+
+  // Move to a vector
+  __m128i nibble_vec = _mm_cvtsi64_si128(wanted_indices);
+
+  // Spread each nibble to a byte
+  __m128i byte_vec = _mm_and_si128(_mm_unpacklo_epi8(nibble_vec, _mm_srli_epi16(nibble_vec, 4)), _mm_set1_epi32(0x0F0F0F0F));
+
+  return _mm_shuffle_epi8(src, byte_vec);
 }
 
 #endif //  __AVX2__
